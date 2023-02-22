@@ -177,9 +177,6 @@ public class Tele extends OpMode {
             if (gamepad1.right_trigger > 0.5) {
                 speedLimit = 0.3;
                 rotationSpeedLimit = 0.35;
-            } else if (gamepad1.left_trigger > 0.5) {
-                speedLimit = 0.9;
-                rotationSpeedLimit = 0.9;
             } else if (gamepad1.right_bumper) {
                 speedLimit = 0.45;
                 rotationSpeedLimit = 0.45;
@@ -187,8 +184,8 @@ public class Tele extends OpMode {
                 speedLimit = 0.5674;
                 rotationSpeedLimit = 0.5;
             } else {
-                speedLimit = 0.61;
-                rotationSpeedLimit = 0.61;
+                speedLimit = 0.9;
+                rotationSpeedLimit = 0.9;
             }
 
             if (gamepad2.left_stick_y > .05 || gamepad2.left_stick_y < -.05 || gamepad2.right_stick_y > .05 || gamepad2.right_stick_y < -.05) {
@@ -233,14 +230,14 @@ public class Tele extends OpMode {
                     robot.upperLift.setTargetPosition(2940);
                     robot.upperLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     robot.upperLift.setPower(.85);
-                    robot.lift.setTargetPosition(4920);
+                    robot.lift.setTargetPosition(3665);
                     robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     robot.lift.setPower(.85);
                 } else if (gamepad2.dpad_left) {
                     robot.upperLift.setTargetPosition(0);
                     robot.upperLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     robot.upperLift.setPower(.85);
-                    robot.lift.setTargetPosition(4920);
+                    robot.lift.setTargetPosition(3665);
                     robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     robot.lift.setPower(.85);
                 } else if (gamepad2.dpad_down) {
