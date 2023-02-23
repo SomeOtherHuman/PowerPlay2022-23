@@ -47,10 +47,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
+import java.util.ArrayList;
+
 @TeleOp(name = "TeleOp", group = "Robot")
 public class Tele extends OpMode {
     Hardware robot = new Hardware();
-//    AutoDetectionJunction.JunctionDeterminationPipeline pipeline;
+    autoDetectionJunction.JunctionAnalysisPipeline junctionPipeline;
 
     double speedLimit = 1;
     double oldTime;
@@ -101,6 +103,33 @@ public class Tele extends OpMode {
         gunner = gunnerControlMode.NORMAL;
         telemetry.setMsTransmissionInterval(20);
 
+        // Create camera instance
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+
+        // Open async and start streaming inside opened callback
+        robot.webcam2.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                robot.webcam2.startStreaming(800, 600, OpenCvCameraRotation.UPRIGHT);
+
+                junctionPipeline = new autoDetectionJunction.JunctionAnalysisPipeline();
+                robot.webcam2.setPipeline(junctionPipeline);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+                /*
+                 * This will be called if the camera could not be opened
+                 */
+                telemetry.addData("Camera unable to open,", "will run left");
+                telemetry.update();
+            }
+        });
+
+
+        // Tell telemetry to update faster than the default 250ms period :)
+        telemetry.setMsTransmissionInterval(20);
+
 //        pipeline = new AutoDetectionJunction.JunctionDeterminationPipeline();
 //        robot.webcam2.setPipeline(pipeline);
 //        robot.webcam2.setMillisecondsPermissionTimeout(2500); // Timeout for obtaining permission is configurable. Set before opening.
@@ -143,7 +172,9 @@ public class Tele extends OpMode {
     @Override
     public void init_loop() {
         telemetry.addData("Robot Ready", "");
+        telemetry.addLine(String.format("Pipeline FPS=%f, RuntimeMs=%f", robot.webcam2.getFps(), (float) robot.webcam2.getPipelineTimeMs()));
         telemetry.update();
+        robot.greenLED.setState(true);
     }
 
     /*
@@ -160,6 +191,15 @@ public class Tele extends OpMode {
     @SuppressLint("SuspiciousIndentation")
     @Override
     public void loop() {
+        ArrayList<autoDetectionJunction.JunctionAnalysisPipeline.AnalyzedJunction> stones = junctionPipeline.getDetectedStones();
+
+        for (autoDetectionJunction.JunctionAnalysisPipeline.AnalyzedJunction stone : stones) {
+            if (stone.area > junctionPipeline.maxArea) {
+                junctionPipeline.maxArea = stone.position;
+            }
+        }
+        telemetry.addData("Detection", junctionPipeline.maxArea);
+        telemetry.addData("FPS", robot.webcam2.getFps());
         drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x, speedLimit);
 
 
@@ -256,39 +296,6 @@ public class Tele extends OpMode {
                     robot.upperLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 }
             } else {
-//                    switch (liftPos) {
-//                        case 0:
-//                            break;
-//                        case 1:
-//                            liftPos = 2;
-//                            break;
-//                        case 2: //Low junction
-//                            robot.upperLift.setTargetPosition(2940);
-//                            robot.upperLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//                            robot.upperLift.setPower(1);
-//                            robot.lift.setTargetPosition(690);
-//                            robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//                            robot.lift.setPower(1);
-//                            break;
-//                        case 3: //Medium junction
-//                            robot.upperLift.setTargetPosition(2940);
-//                            robot.upperLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//                            robot.upperLift.setPower(.85);
-//                            robot.lift.setTargetPosition(2080);
-//                            robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//                            robot.lift.setPower(.85);
-//                            break;
-//                        case 4: //High junction
-//                            robot.upperLift.setTargetPosition(2940);
-//                            robot.upperLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//                            robot.upperLift.setPower(.85);
-//                            robot.lift.setTargetPosition(4920);
-//                            robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//                            robot.lift.setPower(.85);
-//                            break;
-//                        case 5:
-//                            liftPos = 4;
-//                            break;
                 if (!robot.lift.isBusy() && !robot.upperLift.isBusy()) {
                     robot.lift.setPower(0);
                     robot.upperLift.setPower(0);
